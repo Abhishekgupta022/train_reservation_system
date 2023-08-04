@@ -3,19 +3,31 @@ from datetime import datetime, timedelta
 import calendar
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import getpass
 from email_validator import validate_email, EmailNotValidError
 import csv
+import mysql.connector
 
 
+users ={}
 
 file_path = "C:\\Users\\Admin\\OneDrive\\Desktop\\vs code C\\Python\\station_name_code.csv"
+
+db_connection = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='1234',
+        database='user_signup_data'
+    )
 
 
 class TicketBooking:
     def select_boarding_details(self):
+        print("Enter Only Station_code for TicketBooking")
         while True:
-            self.boarding = input("Enter the Boarding Point: ").strip()
+            self.boarding    = input("Enter the Boarding Point: ").strip()
             self.destination = input("Enter the Destination Point: ").strip()
             if self.boarding == self.destination:
                 print("Boarding and destination cannot be the same. Please try again.\n")
@@ -41,6 +53,8 @@ class TicketBooking:
                 print("At least one of the stations is not available. Please try again.\n")
 
     def __init__(self):
+        self.selected_quota = self.date_str = self.email_id = self.total_fare = None
+        
         self.quota_options = ['General', 'Sleeper', '3AC', '2AC', '1AC']
         self.seat_details = self.generate_seat_details()
         self.pnr = self.generate_pnr()
@@ -53,7 +67,9 @@ class TicketBooking:
         choice = input("Enter the corresponding number for the quota: ")
         choice = int(choice)
         if 1 <= choice <= len(self.quota_options):
+                       
             selected_quota = self.quota_options[choice - 1]
+            self.selected_quota = selected_quota            
             print("You selected: {}".format(selected_quota))
             return selected_quota
         else:
@@ -68,6 +84,7 @@ class TicketBooking:
             date_str = input("Enter the date (YYYY-MM-DD): ")
             try:
                 selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                self.date_str = selected_date.strftime("%Y-%m-%d")
                 day = selected_date.weekday()
                 if today <= selected_date <= future_limit:
                     print("You selected:", selected_date)
@@ -124,7 +141,17 @@ class TicketBooking:
         return fare
 
     def book_tickets(self):
-        passenger_count = int(input("Enter the number of passengers: "))
+        while True:
+            passenger_count = int(input("Enter the number of passengers: "))
+            if  passenger_count <= 0 :
+                print("Passenger count must be greater than 0 ")
+                continue
+            elif passenger_count >= 7:
+                print("Maximum Allowable on One Time Booking 6 ")
+                continue                
+            else:
+                break
+        
         selected_quota = self.select_quota()
         selected_date,day = self.select_date()
         self.passengers = []
@@ -133,16 +160,27 @@ class TicketBooking:
         for i in range(passenger_count):
             passenger = self.get_passenger_info(i + 1, selected_quota)
             self.passengers.append(passenger)
+            
 
-        smtp_username = getpass.getpass("SMTP Username: ")
-        smtp_password = getpass.getpass("SMTP Password: ")
-        email_id = input("Enter the Email ID for receiving the ticket details: ")
+#         smtp_username = getpass.getpass("SMTP Username: ")
+        smtp_username = 'reservation.cystum@gmail.com'
+#         smtp_password = getpass.getpass("SMTP Password: ")
+        smtp_password ='dijeocfyweumpgam'
+        # email_id = input("Enter the Email ID for receiving the ticket details: ")
+        while True:
+            try:
+                self.email_id = input("Enter the Email ID for receiving the ticket details:  ")
+                email_id = self.email_id
+                valid_email = validate_email(email_id)
+                break
+            except EmailNotValidError as e:
+                print("Invalid email address! Please enter a valid email.")
         self.send_email(self.passengers, boarding, destination,selected_date,day, email_id, smtp_username, smtp_password)
 
     def get_passenger_info(self, i, selected_quota):
         name = input("Enter the Name of Passenger {}: ".format(i))
         print("Select passenger {} Gender".format(i))
-        gender_options = ['Male', 'Female', 'Trans']
+        gender_options = ['M', 'F', 'T']
         for idx, option in enumerate(gender_options):
             print("{}: {}".format(idx + 1, option))
 
@@ -160,11 +198,21 @@ class TicketBooking:
                 print("Invalid input! Enter a numeric choice.\n")
 
         while True:
-            age = input('Enter the age of passenger {}: '.format(i))
-            if age.isdigit():
-                age = int(age)
-                break
-            else:
+            try:
+                age = input('Enter the age of passenger {}: '.format(i))
+                if age.isdigit() and 5 < int(age) <= 75 :
+                    age = int(age)
+                    break
+                elif age.isdigit() and int(age) <=5  :
+                    print("You are Travelling With Child\nKindly Contact with 138 in any emergency")
+                    break
+                elif age.isdigit() and 100 > int(age) > 75:
+                    print("You are Travelling With Old Man\nKindly Contact with 138 in any emergency")
+                    break
+                else:
+                    continue
+                    print("Invalid input! Enter a numeric age.\n")
+            except ValueError:
                 print("Invalid input! Enter a numeric age.\n")
 
         valid_mob = False
@@ -173,8 +221,7 @@ class TicketBooking:
             if len(mob) == 10 and mob.isdigit() and mob[0] != '0':
                 valid_mob = True
             else:
-                print(
-                    "Invalid phone number! Enter the phone number without the country code and make sure it does not start with 0.\n")
+                print("Invalid phone number!\nPhone number must be without the country code and does not start with 0.\n")
 
         address = input("Enter the passenger {} address: ".format(i))
 
@@ -207,7 +254,8 @@ class TicketBooking:
         return pnr
 
     def calculate_total_fare(self):
-        total_fare = sum(passenger['fare'] for passenger in self.passengers)
+        self.total_fare = sum(passenger['fare'] for passenger in self.passengers)
+        total_fare = self.total_fare
         return total_fare
 
     def print_tickets(self):
@@ -230,14 +278,14 @@ class TicketBooking:
     def send_email(self, passengers, boarding, destination, selected_date,day,email_id,smtp_username, smtp_password):
         smtp_server = 'smtp.gmail.com'
         smtp_port = 587
-        sender_email = 'abhishek.rouniyar1@gmail.com'
+        sender_email = 'reservation.cystum@gmail.com'
 
         message = MIMEText('','html')
         message['Subject'] = 'Ticket Booking Confirmation'
         message['From'] = sender_email
         email_content = "<html><body>"
-        email_content += "<p>Dear Passenger, your ticket details for the journey from <b>{}</b> to <b>{}</b> :</p>".format(boarding, destination)
-        email_content += "<p>Date Of Journey: <b>{} ({})</b></p>".format(selected_date, day)
+        email_content += "<h2>Dear Passenger, your ticket details for the journey from <b>{}</b> to <b>{}</b> :</h2>".format(boarding, destination)
+        email_content += "<h3>Date Of Journey: <b>{} ({})</b></h3>".format(selected_date, day)
         email_content += "<br>"
 
         for passenger in passengers:
@@ -250,6 +298,7 @@ class TicketBooking:
             email_content += "<p>Seat: <b>{}</b></p>".format(str(passenger['seat']))
             email_content += "<p>PNR: <b>{}</b></p>".format(str(passenger['pnr']))
             email_content += "<p>Fare: <b>{}</b></p>".format(str(passenger['fare']))
+            email_content += "<h3><b>Happy Journey</b></h3>"
             email_content += "<hr>"
 
         total_fare = self.calculate_total_fare()
@@ -264,15 +313,231 @@ class TicketBooking:
             server.login(smtp_username, smtp_password)
             server.send_message(message)
 
+def calculate_age(dob):
+    today = datetime.now()
+    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    return age
+def signup():
+    print("Please fill out the following signup form:")
+    name = input("Enter Full Name: ")
+    print("Select User Gender!!")
+    gender_options = ['M', 'F', 'T']
+    for idx, option in enumerate(gender_options):
+        print("{}: {}".format(idx + 1, option))
+
+    while True:
+        gender_choice = input("Enter the corresponding number for Gender: ")
+        try:
+            gender_choice = int(gender_choice)
+            if 1 <= gender_choice <= len(gender_options):
+                gender = gender_options[gender_choice - 1]
+                break
+            else:
+                print("Select Gender Again")
+                continue
+        except ValueError:
+            print("Invalid choice for Gender! Please try again." )
+    while True:
+        dob_str = input("User Date of Birth (YYYY-MM-DD): ")
+        try:
+            dob = datetime.strptime(dob_str, "%Y-%m-%d")
+            age = calculate_age(dob)
+            if age < 18:
+                print("You must be at least 18 years old to create an account.")
+            else:                
+                break
+        except ValueError:
+            print("Invalid date format! Please enter the date in the format YYYY-MM-DD.")
+
+
+    valid_mob = False
+    while not valid_mob:
+        mobile = input("Enter User Mobile : ")
+        if len(mobile) == 10 and mobile.isdigit() and mobile[0] != '0':
+            valid_mob = True
+        else:
+            print("Invalid phone number!\nPhone number must be without the country code and does not start with 0.\n")
+
+    while True:
+        try:
+            email = input("User Email_Id: ")
+            valid_email = validate_email(email)
+            break
+        except EmailNotValidError as e:
+            print("Invalid email address! Please enter a valid email.")
+    address = input("User Permanent Address: ")
+    username = input("Create Username: ")
+    password = getpass.getpass("Create Password: ")
+    users[username] = {
+        'name': name,
+        'gender': gender,
+        'age': age,
+        'mobile': mobile,
+        'email': email,
+        'address': address,
+        'password': password
+    }
+
+    # Send a prompt email to the user
+    smtp_server = 'smtp.gmail.com'
+    smtp_port = 587
+    sender_email = 'reservation.cystum@gmail.com'
+#     sender_email = getpass.getpass("SMTP Username: ")
+#     sender_password = getpass.getpass("SMTP Password: ")
+    sender_password = 'dijeocfyweumpgam'
+    message = MIMEMultipart('alternative')    
+    # message = MIMEText('Signup Successful! Your username is: {} and password is: {}'.format(username, password))
+    message['Subject'] = 'Signup Confirmation'
+    message['From'] = sender_email
+    message['To'] = email
+    text_content = "Signup Successful! Your username is: {} ".format(username)
+    plain_text_part = MIMEText(text_content, 'plain')
+    # HTML content
+    html_content = """\
+    <html>
+        <head></head>
+        <body>
+            <h1><b style="color:black;">Signup Successful!</b></h1>
+            <p>Your username is: <b>{}</b></p>
+            
+        </body>
+    </html>
+    """.format(username, password)
+    html_part = MIMEText(html_content, 'html')
+
+    # Attach both plain text and HTML parts to the email
+    message.attach(plain_text_part)
+    message.attach(html_part)
+
+
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(message)
+        print("Confirmation email sent to {}.".format(email))
+    except smtplib.SMTPException as e:
+        print("Failed to send email: " + str(e) )
+#     checking connection
+    if db_connection.is_connected():
+        print("Database connection successful!")
+    # Create a cursor to execute SQL queries
+    cursor = db_connection.cursor()
+    # Insert user data into the database
+    insert_query = """
+    INSERT INTO users (username, password, name, gender, age, mobile, email, address)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    user_data = (username, password, name, gender, age, mobile, email, address)
+    cursor.execute(insert_query, user_data)
+    # Commit the changes and close the database connection
+    db_connection.commit()
+    cursor.close()
+#     db_connection.close()
+
+    print("Signup successful!")
+
+def login():    
+    while True:
+        username = input("Enter your username: ")
+        password = getpass.getpass("Enter your password: ")
+        #user_data = users.get(username)
+        user_sender = "select password from users where username = %s"
+        cursor = db_connection.cursor()
+        cursor.execute(user_sender,(username,))
+        sql_password = cursor.fetchone()
+        
+        cursor.close()
+        
+        if sql_password is None:
+            print("Invalid Username")
+        else:
+            if sql_password[0] == password:        
+                print("Login successful!")
+                return username
+            else:
+                print("Invalid username or password. Please try again.")
+
+def main():
+    print("Welcome to the Railway Ticket Booking System")
+
+    while True:
+        print("\nSelect an option:")
+        print("1. Signup")
+        print("2. Login")        
+        print("3. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            signup()
+        elif choice == '2':
+                usern=login()
+                while True:
+                    print("1. Booking")
+                    print("2. Cancellation")
+                    print("3. Logout")
+                    user_input = int(input("Enter Your Choice: "))
+                    if user_input ==1:                    
+                        trial=ticket_booking_process()
+                        if db_connection.is_connected():
+                            print("Database connection successful!")
+                        # Create a cursor to execute SQL queries
+                        cursor = db_connection.cursor()
+                        print(trial.total_fare)
+                        # Insert user data into the database
+                        ticket_query = """
+                        INSERT INTO tickets (   pnr, username, selected_quota, date_of_journey, 
+                                                boarding , destination,email_id, total_fare,
+                                                p1_name , p1_gender, p1_age, p1_phone, p1_address,
+                                                p2_name , p2_gender, p2_age,
+                                                p3_name , p3_gender, p3_age,
+                                                p4_name , p4_gender, p4_age,
+                                                p5_name , p5_gender, p5_age,
+                                                p6_name , p6_gender, p6_age,
+                                                p1_seat , p2_seat, p3_seat,
+                                                p4_seat , p5_seat, p6_seat
+                                                
+                                            )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)                 
+                                 
+                        """
+                        user_data = (trial.pnr,usern,trial.selected_quota, trial.date_str, 
+                                    trial.boarding , trial.destination,trial.email_id,trial.total_fare,
+                                    passenger[0],selected_gender[0],age[0],mob[0],address[0],seat[0],
+                                    passenger[1],selected_gender[1],age[1],
+                                    passenger[2],selected_gender[2],age[2],
+                                    passenger[3],selected_gender[3],age[3],
+                                    passenger[4],selected_gender[4],age[4],
+                                    passenger[5],selected_gender[5],age[5]
+                                    )
+                        cursor.execute(ticket_query, user_data)
+                        db_connection.commit()
+                        cursor.close()
+
+                        
+                    elif user_input ==2:
+    #                     cancellation
+                        pass
+                    elif user_input == 3:
+                        print("Logout Successfully")
+                        break
+                    else :
+                        continue 
+        elif choice == '3':
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice, please try again.")
 
 def ticket_booking_process():
     booking = TicketBooking()
-    booking.display_quota_options()
+    #print(booking.pnr)
     booking.book_tickets()
     booking.print_tickets()
+    return booking
 
-# iiwdvtilcxknsntp
-# pkeqoyyklaxxvhjk
-# rujtjuncoeetrggx
-# iiwdvtilcxknsntp
-ticket_booking_process()
+if __name__ == "__main__":
+    main()
+    
