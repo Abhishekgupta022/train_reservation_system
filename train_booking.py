@@ -53,9 +53,8 @@ class TicketBooking:
                 print("At least one of the stations is not available. Please try again.\n")
 
     def __init__(self):
-        self.passengers = None
-        self.destination = None
-        self.boarding = None
+        self.boarding = self.passengers = self.destination  = None
+        self.passenger_count = 0 
         self.selected_quota = self.date_str = self.email_id = self.total_fare = None
 
         self.quota_options = ['General', 'Sleeper', '3AC', '2AC', '1AC']
@@ -145,24 +144,32 @@ class TicketBooking:
 
     def book_tickets(self):
         while True:
-            passenger_count = int(input("Enter the number of passengers: "))
+            passenger_count = input("Enter the number of passengers: ")
+
+            try:
+                passenger_count = int(passenger_count)
+            except ValueError:
+                print("Enter Integer not String")
+                continue
+
             if passenger_count <= 0:
-                print("Passenger count must be greater than 0 ")
+                print("Passenger count must be greater than 0")
                 continue
             elif passenger_count >= 7:
-                print("Maximum Allowable on One Time Booking 6 ")
+                print("Maximum Allowable on One Time Booking is 6")
                 continue
             else:
                 break
-
         selected_quota = self.select_quota()
         selected_date, day = self.select_date()
-        self.passengers = []
 
-        boarding, destination = self.select_boarding_details()
+        self.passengers = [{}] * passenger_count
+        self.boarding, self.destination = self.select_boarding_details()
+
         for i in range(passenger_count):
             passenger = self.get_passenger_info(i + 1, selected_quota)
-            self.passengers.append(passenger)
+            self.passengers[i] = passenger
+#             self.passengers.append(passenger)
 
         #         smtp_username = getpass.getpass("SMTP Username: ")
         smtp_username = 'reservation.cystum@gmail.com'
@@ -177,11 +184,23 @@ class TicketBooking:
                 break
             except EmailNotValidError:
                 print("Invalid email address! Please enter a valid email.")
-        self.send_email(self.passengers, boarding, destination, selected_date, day, email_id, smtp_username,
+        self.send_email(self.passengers, self.boarding, self.destination, selected_date, day, email_id, smtp_username,
                         smtp_password)
 
     def get_passenger_info(self, i, selected_quota):
         global mob
+        
+        passenger_info = {
+                    'name': None,
+                    'gender': None,
+                    'age': None,
+                    'phone': None,
+                    'address': None,
+                    'seat': None,
+                    'pnr': None,
+                    'fare': 0.0   # Set the initial fare to 0.0            
+
+                    }
         name = input("Enter the Name of Passenger {}: ".format(i))
         print("Select passenger {} Gender".format(i))
         gender_options = ['M', 'F', 'T']
@@ -215,7 +234,7 @@ class TicketBooking:
                     break
                 else:
                     continue
-                    
+
             except ValueError:
                 print("Invalid input! Enter a numeric age.\n")
 
@@ -241,16 +260,16 @@ class TicketBooking:
         else:
             fare = self.passengers[0]['fare']
 
-        passenger_info = {
-            'name': name,
-            'gender': selected_gender,
-            'age': age,
-            'phone': mob,
-            'address': address,
-            'seat': seat,
-            'pnr': self.pnr,
-            'fare': fare
-        }
+        passenger_info.update({
+                    'name': name,
+                    'gender': selected_gender,
+                    'age': age,
+                    'phone': mob,
+                    'address': address,
+                    'seat': seat,
+                    'pnr': self.pnr,
+                    'fare': fare
+                    })
         return passenger_info
 
     @staticmethod
@@ -295,17 +314,18 @@ class TicketBooking:
         email_content += "<br>"
 
         for passenger in passengers:
-            email_content += "<hr>"
-            email_content += "<p>Passenger Name: <b>{}</b></p>".format(passenger['name'])
-            email_content += "<p>Gender: <b>{}</b></p>".format(passenger['gender'])
-            email_content += "<p>Age: <b>{}</b></p>".format(str(passenger['age']))
-            email_content += "<p>Phone Number: <b>{}</b></p>".format(str(passenger['phone']))
-            email_content += "<p>Address: <b>{}</b></p>".format(str(passenger['address']))
-            email_content += "<p>Seat: <b>{}</b></p>".format(str(passenger['seat']))
-            email_content += "<p>PNR: <b>{}</b></p>".format(str(passenger['pnr']))
-            email_content += "<p>Fare: <b>{}</b></p>".format(str(passenger['fare']))
-            email_content += "<h3><b>Happy Journey</b></h3>"
-            email_content += "<hr>"
+            if 'name' in passenger:
+                email_content += "<hr>"
+                email_content += "<p>Passenger Name: <b>{}</b></p>".format(passenger['name'])
+                email_content += "<p>Gender: <b>{}</b></p>".format(passenger['gender'])
+                email_content += "<p>Age: <b>{}</b></p>".format(str(passenger['age']))
+                email_content += "<p>Phone Number: <b>{}</b></p>".format(str(passenger['phone']))
+                email_content += "<p>Address: <b>{}</b></p>".format(str(passenger['address']))
+                email_content += "<p>Seat: <b>{}</b></p>".format(str(passenger['seat']))
+                email_content += "<p>PNR: <b>{}</b></p>".format(str(passenger['pnr']))
+                email_content += "<p>Fare: <b>{}</b></p>".format(str(passenger['fare']))
+                email_content += "<h3><b>Happy Journey</b></h3>"
+                email_content += "<hr>"
 
         total_fare = self.calculate_total_fare()
         email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)
@@ -395,7 +415,6 @@ def signup():
     #     sender_password = getpass.getpass("SMTP Password: ")
     sender_password = 'dijeocfyweumpgam'
     message = MIMEMultipart('alternative')
-    # message = MIMEText('Signup Successful! Your username is: {} and password is: {}'.format(username, password))
     message['Subject'] = 'Signup Confirmation'
     message['From'] = sender_email
     message['To'] = email
@@ -486,15 +505,19 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
             while True:
                 print("1. Booking")
                 print("2. Cancellation")
-                print("3. Logout")
+                print("3. Check PNR")
+                print("4. Logout")
                 user_input = int(input("Enter Your Choice: "))
                 if user_input == 1:
                     trial = ticket_booking_process()
                     if db_connection.is_connected():
                         print("Database connection successful!")
                     # Create a cursor to execute SQL queries
-                    cursor = db_connection.cursor()
-#                     print(trial.total_fare)
+                    cursor = db_connection.cursor() 
+                    passenger_info = [trial.passengers[i] if i < len(trial.passengers) else {} for i in range(6)]
+#                     print(passenger_info[0].get('seat', 'Null')) 
+                    
+                   
                     # Insert user data into the database
                     ticket_query = """
                         INSERT INTO tickets (   pnr, username, selected_quota, date_of_journey, 
@@ -506,30 +529,50 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                                 p5_name , p5_gender, p5_age,
                                                 p6_name , p6_gender, p6_age,
                                                 p1_seat , p2_seat, p3_seat,
-                                                p4_seat , p5_seat, p6_seat
+                                                p4_seat , p5_seat, p6_seat,
+                                                p1_status, p2_status, p3_status,
+                                                p4_status, p5_status, p6_status
 
                                             )
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)                 
+                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s, %s )                 
 
                         """
-                    user_data = (trial.pnr, usern, trial.selected_quota, trial.date_str,
-                                 trial.boarding, trial.destination, trial.email_id, trial.total_fare,
-                                 passenger[0], selected_gender[0], age[0], mob[0], address[0],
-                                 passenger[1], selected_gender[1], age[1],
-                                 passenger[2], selected_gender[2], age[2],
-                                 passenger[3], selected_gender[3], age[3],
-                                 passenger[4], selected_gender[4], age[4],
-                                 passenger[5], selected_gender[5], age[5],
-                                 seat[0], seat[1], seat[2], seat[3], seat[4], seat[5]
-                                 )
+                    
+
+                    user_data = (
+                            trial.pnr, usern, trial.selected_quota, trial.date_str,
+                            trial.boarding, trial.destination, trial.email_id, trial.total_fare,
+                            passenger_info[0].get('name', 'Null'), passenger_info[0].get('gender', 'Null'),
+                            passenger_info[0].get('age', 0), passenger_info[0].get('phone', 'Null'), passenger_info[0].get('address', 'Null'),
+                            passenger_info[1].get('name', 'Null'), passenger_info[1].get('gender', 'Null'),
+                            passenger_info[1].get('age', 0),
+                            passenger_info[2].get('name', 'Null'), passenger_info[2].get('gender', 'Null'),
+                            passenger_info[2].get('age', 0),
+                            passenger_info[3].get('name', 'Null'), passenger_info[3].get('gender', 'Null'),
+                            passenger_info[3].get('age', 0),
+                            passenger_info[4].get('name', 'Null'), passenger_info[4].get('gender', 'Null'),
+                            passenger_info[4].get('age', 0),
+                            passenger_info[5].get('name', 'Null'), passenger_info[5].get('gender', 'Null'),
+                            passenger_info[5].get('age', 0),
+                            passenger_info[0].get('seat', 'Null'), passenger_info[1].get('seat', 'Null'),
+                            passenger_info[2].get('seat', 'Null'), passenger_info[3].get('seat', 'Null'),
+                            passenger_info[4].get('seat', 'Null'), passenger_info[5].get('seat', 'Null')
+                        )
+
                     cursor.execute(ticket_query, user_data)
                     db_connection.commit()
                     cursor.close()
                 elif user_input == 2:
+                    print("Feature Not Available Right Now")
                     #      cancellation
                     pass
                 elif user_input == 3:
+                    print("Feature Not Available Right Now")
+                    #    Check PNR
+                    pass
+                elif user_input == 4:
                     print("Logout Successfully")
                     break
                 else:
@@ -539,9 +582,11 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
             break
         else:
             print("Invalid choice, please try again.")
+
+
 def ticket_booking_process():
     booking = TicketBooking()
-    # print(booking.pnr)
+    
     booking.book_tickets()
     booking.print_tickets()
     return booking
