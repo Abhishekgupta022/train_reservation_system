@@ -198,7 +198,8 @@ class TicketBooking:
                     'address': None,
                     'seat': None,
                     'pnr': None,
-                    'fare': 0.0   # Set the initial fare to 0.0            
+                    'fare': 0.0,  # Set the initial fare to 0.0
+                    'status': None            
 
                     }
         name = input("Enter the Name of Passenger {}: ".format(i))
@@ -254,11 +255,13 @@ class TicketBooking:
         coach_number = randint(1, seat_details['total_coaches'])
         seat_number = i
         seat = "{}{}:{}".format(seat_details['coach'], coach_number, seat_number)
-
+        status='CNF'
+        
         if i == 1:
             fare = self.calculate_fare(selected_quota)
         else:
             fare = self.passengers[0]['fare']
+            
 
         passenger_info.update({
                     'name': name,
@@ -268,7 +271,8 @@ class TicketBooking:
                     'address': address,
                     'seat': seat,
                     'pnr': self.pnr,
-                    'fare': fare
+                    'fare': fare,
+                    'status' : status
                     })
         return passenger_info
 
@@ -294,6 +298,7 @@ class TicketBooking:
             print("Seat: " + str(passenger['seat']))
             print("PNR: " + str(passenger['pnr']))
             print("Fare: " + str(passenger['fare']))
+            print("Status: " + str(passenger['status']))
             print("----*----*----*----*----*----*----*----")
 
         total_fare = self.calculate_total_fare()
@@ -324,6 +329,7 @@ class TicketBooking:
                 email_content += "<p>Seat: <b>{}</b></p>".format(str(passenger['seat']))
                 email_content += "<p>PNR: <b>{}</b></p>".format(str(passenger['pnr']))
                 email_content += "<p>Fare: <b>{}</b></p>".format(str(passenger['fare']))
+                email_content += "<p>Status: <b>{}</b></p>".format(str(passenger['status']))
                 email_content += "<h3><b>Happy Journey</b></h3>"
                 email_content += "<hr>"
 
@@ -558,7 +564,10 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                             passenger_info[5].get('age', 0),
                             passenger_info[0].get('seat', 'Null'), passenger_info[1].get('seat', 'Null'),
                             passenger_info[2].get('seat', 'Null'), passenger_info[3].get('seat', 'Null'),
-                            passenger_info[4].get('seat', 'Null'), passenger_info[5].get('seat', 'Null')
+                            passenger_info[4].get('seat', 'Null'), passenger_info[5].get('seat', 'Null'),
+                            passenger_info[0].get('status', 'Null'), passenger_info[1].get('status', 'Null'),
+                            passenger_info[2].get('status', 'Null'), passenger_info[3].get('status', 'Null'),
+                            passenger_info[4].get('status', 'Null'), passenger_info[5].get('status', 'Null')
                         )
 
                     cursor.execute(ticket_query, user_data)
