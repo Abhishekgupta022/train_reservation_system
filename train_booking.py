@@ -522,7 +522,9 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                     cursor = db_connection.cursor() 
                     passenger_info = [trial.passengers[i] if i < len(trial.passengers) else {} for i in range(6)]
 #                     print(passenger_info[0].get('seat', 'Null')) 
-                    
+                    tob_gen=datetime.now()
+                    tob_gen=str(tob_gen)
+                    tob=tob_gen.split('.')[0]
                    
                     # Insert user data into the database
                     ticket_query = """
@@ -537,12 +539,12 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                                 p1_seat , p2_seat, p3_seat,
                                                 p4_seat , p5_seat, p6_seat,
                                                 p1_status, p2_status, p3_status,
-                                                p4_status, p5_status, p6_status
+                                                p4_status, p5_status, p6_status,tob
 
                                             )
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s, %s )                 
+                                %s, %s, %s, %s, %s, %s, %s )                 
 
                         """
                     
@@ -567,7 +569,8 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                             passenger_info[4].get('seat', 'Null'), passenger_info[5].get('seat', 'Null'),
                             passenger_info[0].get('status', 'Null'), passenger_info[1].get('status', 'Null'),
                             passenger_info[2].get('status', 'Null'), passenger_info[3].get('status', 'Null'),
-                            passenger_info[4].get('status', 'Null'), passenger_info[5].get('status', 'Null')
+                            passenger_info[4].get('status', 'Null'), passenger_info[5].get('status', 'Null'),
+                            tob
                         )
 
                     cursor.execute(ticket_query, user_data)
@@ -576,6 +579,38 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                 elif user_input == 2:
                     print("Feature Not Available Right Now")
                     #      cancellation
+                    while True:
+                        pnrc=input("Enter PNR No : ")
+                        try:
+#                             pnrc_check=int(pnrc)
+                            if pnrc.isdigit() and len(pnrc) ==11:
+                                pnr_obtain='''SELECT date_of_journey, selected_quota, boarding, destination, 
+                                p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
+                                p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
+                                FROM tickets WHERE pnr=%s'''
+                                cursor = db_connection.cursor()
+                                cursor.execute(pnr_obtain,(pnrc,))
+                                pnr_data=cursor.fetchall()
+                                cursor.close()
+                                if not pnr_data:
+                                    print("PNR not found")
+                                    continue
+                                else:
+                                    pass
+#                                 print(pnr_data,end='\n')
+#                                 print(pnr_obtain)
+#                                 break
+                                
+                                
+                                
+                            else :
+                                print("PNR must be 11 digit number")
+                                continue
+
+                        except Exception as e:
+                            print("Only numbers expected")
+                            print(e)
+
                     pass
                 elif user_input == 3:
                     print("Feature Not Available Right Now")
