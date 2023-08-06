@@ -578,88 +578,125 @@ def main():
                             if pnrc.isdigit() and len(pnrc) == 11:
                                 pnr_obtain = '''SELECT date_of_journey, selected_quota, boarding, destination, 
                                 p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
-                                p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
+                                p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status, username
                                 FROM tickets WHERE pnr=%s'''
                                 cursor = db_connection.cursor()
                                 cursor.execute(pnr_obtain, (pnrc,))
                                 pnr_data = cursor.fetchall()
                                 cursor.close()
+#                                 print(pnr_data)
+#                                 print(pnr_data[0][22])
+                                pnr_username=pnr_data[0][22]
                                 if not pnr_data:
                                     print("PNR not found")
                                     continue
                                 else:
-                                    cursor = db_connection.cursor()
-                                    pnr_cancel = str(pnrc)
-                                    user_email = """SELECT email_id from tickets where pnr = %s """
-                                    cursor.execute(user_email, (pnr_cancel,))
-                                    user_email = cursor.fetchone()[0]
-                                    can_data = '''SELECT date_of_journey, selected_quota, boarding, destination, 
-                                     p1_name, p1_seat, p1_status,
-                                     p2_name, p2_seat, p2_status,
-                                     p3_name, p3_seat, p3_status,
-                                     p4_name, p4_seat, p4_status,
-                                     p5_name, p5_seat, p5_status, 
-                                     p6_name, p6_seat, p6_status
-                                    FROM tickets WHERE pnr=%s'''
-                                    cursor.execute(can_data, (pnr_cancel,))
-                                    tic_data = cursor.fetchall()
-                                    cancel_tic = """DELETE  FROM tickets WHERE pnr = %s """
-                                    cursor.execute(cancel_tic, (pnr_cancel,))
-                                    db_connection.commit()
-                                    cursor.close()
-                                    db_connection.close()
-                                    smtp_server = 'smtp.gmail.com'
-                                    smtp_port = 587
-                                    sender_email = 'reservation.cystum@gmail.com'
-                                    sender_password = 'dijeocfyweumpgam'
-                                    message = MIMEMultipart('alternative')
-                                    message['Subject'] = 'Ticket Cancellation'
-                                    message['From'] = sender_email
-                                    message['To'] = user_email
-                                    if not tic_data:
-                                        print("Some Error Occured\nPNR not Found")
-                                        continue
-                                    else:
-                                        email_can_content = f"<html><body>"
-                                        email_can_content += f"<p>Dear Passenger,</p>"
-                                        email_can_content += (f"<p>Your Ticket From <strong>{tic_data[0][2]} "
-                                                              f"to <strong>{tic_data[0][3]}</strong> is Cancelled.</p>")
-
-                                        email_can_content += f"<p>Date of Journey: {tic_data[0][0]}</p>"
-                                        email_can_content += f"<p>Quota: {tic_data[0][1]}</p>"
-                                        email_can_content += f"<p><strong>Passenger Details:</strong></p>"
-                                        email_can_content += f"<table border='1' cellpadding='5'>"
-                                        email_can_content += f"<tr><th>SL No.</th><th>Name\
-                                        </th><th>Seat</th><th>Status</th></tr>"
-                                        passenger_count = 0
-                                        for i in range(4, len(tic_data[0]), 3):
-                                            passenger_name = tic_data[0][i]
+                                    if usern==pnr_username:
+                                        print(f"Date of Journey : {pnr_data[0][0]}")
+                                        print(f"Quota : {pnr_data[0][1]}")
+                                        print(f"Boarding : {pnr_data[0][2]}    Destination : {pnr_data[0][3]}")
+                                        
+                                        passenger_count=0
+                                        for i in range(4, 22, 3):
+                                            passenger_name = pnr_data[0][i]
                                             if passenger_name != "Null":
                                                 passenger_count += 1
-                                                email_can_content += f"<tr>"
-                                                email_can_content += f"<td>{passenger_count}</td>"
-                                                email_can_content += f"<td>{passenger_name}</td>"
-                                                email_can_content += f"<td>{tic_data[0][i + 1]}</td>"
-                                                email_can_content += f"<td style='color: red;'>CAN</td>"
-                                                email_can_content += f"</tr>"
 
-                                        email_can_content += f"</table>"
-                                        email_can_content += f"<p><strong>Refund Information:</strong></p>"
-                                        email_can_content += f"<p>Your refund will be reverted to the \
-                                        same account in 4-5 working days.</p>"
-                                        email_can_content += f"</body></html>"
-                                    message.attach(MIMEText(email_can_content, 'html'))
+                                                print(f"\n{passenger_count}", end=". ")
+#                                                 print("+-----------------------------+")
+                                                print(f"Name: {passenger_name}", end=" | ")
+#                                                 print("+-----------------------------|")
+                                                print(f"Seat: {pnr_data[0][i + 1]}", end=" | ")
+#                                                 print("+-----------------------------|")
+                                                print(f"Status: {pnr_data[0][i + 2]}")
+#                                                 print("+-----------------------------+")
+                                                
+                                        r=input("Enter the passenger no. to cancel the reservation : ")
+                                        can_num='p'+r+'_status'
+#                                         print(can_num)
+                
+                                        cursor = db_connection.cursor()
+                                        pnr_cancel = str(pnrc)
+                                        user_email = """SELECT email_id from tickets where pnr = %s """
+                                        cursor.execute(user_email, (pnr_cancel,))
+                                        user_email = cursor.fetchone()[0]
+                                        can_data = '''SELECT date_of_journey, selected_quota, boarding, destination, 
+                                         p1_name, p1_seat, p1_status,
+                                         p2_name, p2_seat, p2_status,
+                                         p3_name, p3_seat, p3_status,
+                                         p4_name, p4_seat, p4_status,
+                                         p5_name, p5_seat, p5_status, 
+                                         p6_name, p6_seat, p6_status
+                                        FROM tickets WHERE pnr=%s'''
+                                        
+                                        cancel_tic = f"""UPDATE tickets SET {can_num} ='CAN' WHERE pnr = %s"""
+                                        cursor.execute(cancel_tic, (pnr_cancel,))
+                                        db_connection.commit()
+#                                         cursor.close()
+                                        
+                                        cursor.execute(can_data, (pnr_cancel,))
+                                        tic_data = cursor.fetchall()
+#                                         cursor = db_connection.cursor()
+                                        cursor.close()
+                                        db_connection.close()
+                                        smtp_server = 'smtp.gmail.com'
+                                        smtp_port = 587
+                                        sender_email = 'reservation.cystum@gmail.com'
+                                        sender_password = 'dijeocfyweumpgam'
+                                        message = MIMEMultipart('alternative')
+                                        message['Subject'] = 'Ticket Cancellation'
+                                        message['From'] = sender_email
+                                        message['To'] = user_email
+                                        if not tic_data:
+                                            print("Some Error Occured\nPNR not Found")
+                                            continue
+                                        else:
+                                            email_can_content = f"<html><body>"
+                                            email_can_content += f"<p>Dear Passenger,</p>"
+                                            email_can_content += (f"<p>Your Ticket From <strong>{tic_data[0][2]} "
+                                                                  f"to <strong>{tic_data[0][3]}</strong> is Cancelled.</p>")
 
-                                    # Connect to SMTP server and send email
-                                    with smtplib.SMTP(smtp_server, smtp_port) as server:
-                                        server.starttls()
-                                        server.login(sender_email, sender_password)
-                                        server.sendmail(sender_email, user_email, message.as_string())
+                                            email_can_content += f"<p>Date of Journey: {tic_data[0][0]}</p>"
+                                            email_can_content += f"<p>Quota: {tic_data[0][1]}</p>"
+                                            email_can_content += f"<p><strong>Passenger Details:</strong></p>"
+                                            email_can_content += f"<table border='1' cellpadding='5'>"
+                                            email_can_content += f"<tr><th>SL No.</th><th>Name\
+                                            </th><th>Seat</th><th>Status</th></tr>"
+                                            passenger_count = 0
+                                            for i in range(4, len(tic_data[0]), 3):
+                                                passenger_name = tic_data[0][i]
+                                                if passenger_name != "Null":
+                                                    passenger_count += 1
+                                                    email_can_content += f"<tr>"
+                                                    email_can_content += f"<td>{passenger_count}</td>"
+                                                    email_can_content += f"<td>{passenger_name}</td>"                                                    
+                                                    if tic_data[0][i+2]=='CNF':
+                                                        email_can_content += f"<td>{tic_data[0][i + 1]}</td>"
+                                                        email_can_content += f"<td style='color: green;'>{tic_data[0][i+2]}</td>"
+                                                    else:
+                                                        email_can_content += f"<td>---</td>"
+                                                        email_can_content += f"<td style='color: red;'>{tic_data[0][i+2]}</td>"
+                                                    email_can_content += f"</tr>"
 
-                                    print("Ticket Cancelled successfully and email sent.")
+                                            email_can_content += f"</table>"
+                                            email_can_content += f"<p><strong>Refund Information:</strong></p>"
+                                            email_can_content += f"<p>Your refund will be reverted to the \
+                                            same account in 4-5 working days.</p>"
+                                            email_can_content += f"</body></html>"
+                                        message.attach(MIMEText(email_can_content, 'html'))
 
-                                    break
+                                        # Connect to SMTP server and send email
+                                        with smtplib.SMTP(smtp_server, smtp_port) as server:
+                                            server.starttls()
+                                            server.login(sender_email, sender_password)
+                                            server.sendmail(sender_email, user_email, message.as_string())
 
+                                        print("Ticket Cancelled successfully and email sent.")
+
+                                        break
+                                    else:
+                                        print("PNR does not belong to this user id.")
+                                        break
                             else:
                                 print("PNR must be 11 digit number")
                                 continue
