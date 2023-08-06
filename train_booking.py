@@ -594,21 +594,77 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                 else:
                                     cursor = db_connection.cursor()
                                     pnr_cancel = str(pnrc)
-                                    
+                                    user_email = """SELECT email_id from tickets where pnr = %s """
+                                    cursor.execute(user_email, (pnr_cancel,))
+                                    user_email = cursor.fetchone()[0]
+                                    can_data = '''SELECT date_of_journey, selected_quota, boarding, destination, 
+                                    p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
+                                    p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
+                                    FROM tickets WHERE pnr=%s'''
+                                    cursor.execute(can_data, (pnr_cancel,))
+                                    tic_data = cursor.fetchall()
                                     cancel_tic = """DELETE  FROM tickets WHERE pnr = %s """
-                                    cursor.execute(cancel_tic, (pnr_cancel,))
+                                    cursor.execute(cancel_tic, (pnr_cancel,))                                    
+                                    db_connection.commit()
+#                                     update_status_query = """UPDATE tickets SET p1_status = 'CAN', p2_status = 'CAN', p3_status = 'CAN',
+#                                         p4_status = 'CAN', p5_status = 'CAN', p6_status = 'CAN'
+#                                         WHERE pnr = %s"""
+#                                     cursor.execute(update_status_query, (pnr_cancel,))
                                     db_connection.commit()
                                     cursor.close()
-                                    db_connection.close()                                    
-                                    print("Ticket Cancelled successfully")
+                                    db_connection.close()    
                                     smtp_server = 'smtp.gmail.com'
                                     smtp_port = 587
                                     sender_email = 'reservation.cystum@gmail.com'
                                     sender_password = 'dijeocfyweumpgam'
                                     message = MIMEMultipart('alternative')
                                     message['Subject'] = 'Ticket Cancellation'
-                                    message['From'] = sender_email
-                                    message['To'] = email
+                                    message['From'] = sender_email                                    
+                                    message['To'] = user_email
+                                    if not tic_data:
+                                        print("Some Error Occured\nPNR not Found")
+                                        continue
+                                    else:
+                                        email_can_content = f"<html><body>"
+                                        email_can_content += f"<p>Dear Passenger,</p>"
+                                        email_can_content += f"<p>Your Ticket From <strong>{tic_data[0][2]}</strong> to <strong>{tic_data[0][3]}</strong> is Cancelled.</p>"
+                                        email_can_content += f"<p>Date of Journey: {tic_data[0][0]}</p>"
+                                        email_can_content += f"<p>Quota: {tic_data[0][1]}</p>"
+                                        email_can_content += f"<p><strong>Passenger Details:</strong></p>"                                        
+                                        email_can_content += f"<table border='1' cellpadding='5'>"
+                                        email_can_content += f"<tr><th>SL No.</th><th>Name</th><th>Seat</th><th>Status</th></tr>"
+                                        
+
+                                        passenger_count = 0
+                                        for i in range(4, len(tic_data[0]), 3):
+                                            passenger_name = tic_data[0][i]
+                                            if passenger_name != "Null":
+                                                passenger_count += 1
+                                                email_can_content += f"<tr>"
+                                                email_can_content += f"<td>{passenger_count}</td>"           
+                                                email_can_content += f"<td>{passenger_name}</td>"
+                                                email_can_content += f"<td>{tic_data[0][i + 1]}</td>"
+                                                email_can_content += f"<td style='color: red;'>CAN</td>"  # Status set to "CAN" in red color
+                                                email_can_content += f"</tr>"
+
+                                        email_can_content += f"</table>"
+                                        email_can_content += f"<p><strong>Refund Information:</strong></p>"
+                                        email_can_content += f"<p>Your refund will be reverted to the same account in 4-5 working days.</p>"
+                                        email_can_content += f"</body></html>"                                      
+
+
+
+                                    # Attach the email content
+#                                     text_part = MIMEText(email_can_content, 'plain')
+                                    message.attach(MIMEText(email_can_content, 'html'))
+
+                                    # Connect to SMTP server and send email
+                                    with smtplib.SMTP(smtp_server, smtp_port) as server:
+                                        server.starttls()
+                                        server.login(sender_email, sender_password)
+                                        server.sendmail(sender_email, user_email, message.as_string())
+
+                                    print("Ticket Cancelled successfully and email sent.")
                                     
                                     break                                                            
                                 
