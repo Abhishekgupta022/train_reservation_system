@@ -52,5 +52,14 @@ add column p3_status varchar (5) default null ,
 add column p4_status varchar (5) default null ,
 add column p5_status varchar (5) default null ,
 add column p6_status varchar (5) default null ;
+
+alter table tickets
+add column tob datetime;
+
 drop table tickets;
-select * from tickets;
+
+select * from tickets
+order by tob DESC;
+
+
+
