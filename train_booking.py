@@ -313,29 +313,31 @@ class TicketBooking:
         message['Subject'] = 'Ticket Booking Confirmation'
         message['From'] = sender_email
         email_content = "<html><body>"
-        email_content += "<h2>Dear Passenger, your ticket details for the journey from <b>{}</b> to <b>{}</b> :</h2>".format(
+        email_content += "<h2>Dear Passenger, your ticket details for the journey from <strong>{}</strong> to <strong>{}</strong> :</h2>".format(
             boarding, destination)
-        email_content += "<h3>Date Of Journey: <b>{} ({})</b></h3>".format(selected_date, day)
-        email_content += "<br>"
+        email_content += "<h3>Date Of Journey: <strong>{} ({})</strong></h3>".format(selected_date, day)
+        email_content +=  f"<table border='1' cellpadding='5'>"
+#         email_content += "<br>"
 
         for passenger in passengers:
             if 'name' in passenger:
-                email_content += "<hr>"
-                email_content += "<p>Passenger Name: <b>{}</b></p>".format(passenger['name'])
-                email_content += "<p>Gender: <b>{}</b></p>".format(passenger['gender'])
-                email_content += "<p>Age: <b>{}</b></p>".format(str(passenger['age']))
-                email_content += "<p>Phone Number: <b>{}</b></p>".format(str(passenger['phone']))
-                email_content += "<p>Address: <b>{}</b></p>".format(str(passenger['address']))
-                email_content += "<p>Seat: <b>{}</b></p>".format(str(passenger['seat']))
-                email_content += "<p>PNR: <b>{}</b></p>".format(str(passenger['pnr']))
-                email_content += "<p>Fare: <b>{}</b></p>".format(str(passenger['fare']))
-                email_content += "<p>Status: <b>{}</b></p>".format(str(passenger['status']))
-                email_content += "<h3><b>Happy Journey</b></h3>"
-                email_content += "<hr>"
+                email_content += "<tr>"
+                email_content += "<td>Passenger Name: <b>{}</b></td>".format(passenger['name'])
+                email_content += "<td>Gender: <b>{}</b></td>".format(passenger['gender'])
+                email_content += "<td>Age: <b>{}</b></td>".format(str(passenger['age']))
+                email_content += "<td>Phone Number: <b>{}</b></td>".format(str(passenger['phone']))
+                email_content += "<td>Address: <b>{}</b></td>".format(str(passenger['address']))
+                email_content += "<td>Seat: <b>{}</b></td>".format(str(passenger['seat']))
+                email_content += "<td>PNR: <b>{}</b></td>".format(str(passenger['pnr']))
+                email_content += "<td>Fare: <b>{}</b></td>".format(str(passenger['fare']))
+                email_content += "<td>Status: <b><span style='color: green;'>{}</span></b></td>".format(str(passenger['status']))
+                email_content += "</tr>"
 
         total_fare = self.calculate_total_fare()
-        email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)
+        email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)        
         email_content += "</body></html>"
+        email_content += "Happy Journey: INDIAN RAILWAYS"
+        email_content += "Love From Cystum..."
 
         message.set_payload(email_content)
         message['To'] = email_id
