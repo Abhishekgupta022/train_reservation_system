@@ -332,13 +332,12 @@ class TicketBooking:
                 email_content += "<td>Fare: <b>{}</b></td>".format(str(passenger['fare']))
                 email_content += "<td>Status: <b><span style='color: green;'>{}</span></b></td>".format(str(passenger['status']))
                 email_content += "</tr>"
-
         total_fare = self.calculate_total_fare()
-        email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)        
-        email_content += "</body></html>"
-        email_content += "Happy Journey: INDIAN RAILWAYS"
-        email_content += "Love From Cystum..."
+        email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)
+        email_content += "</body></html>"           
+        email_content += "<p>Happy Journey: INDIAN RAILWAYS<br>Love From Cystum...</p>"
 
+                
         message.set_payload(email_content)
         message['To'] = email_id
 
@@ -346,14 +345,10 @@ class TicketBooking:
             server.starttls()
             server.login(smtp_username, smtp_password)
             server.send_message(message)
-
-
 def calculate_age(dob):
     today = datetime.now()
     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
     return age
-
-
 def signup():
     global gender, mobile
     print("Please fill out the following signup form:")
@@ -544,10 +539,8 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                             )
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s, %s, %s )                 
-
-                        """                   
-
+                                %s, %s, %s, %s, %s, %s, %s )  
+                        """   
                     user_data = (
                             trial.pnr, usern, trial.selected_quota, trial.date_str,
                             trial.boarding, trial.destination, trial.email_id, trial.total_fare,
@@ -606,12 +599,7 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                     cursor.execute(can_data, (pnr_cancel,))
                                     tic_data = cursor.fetchall()
                                     cancel_tic = """DELETE  FROM tickets WHERE pnr = %s """
-                                    cursor.execute(cancel_tic, (pnr_cancel,))                                    
-                                    db_connection.commit()
-#                                     update_status_query = """UPDATE tickets SET p1_status = 'CAN', p2_status = 'CAN', p3_status = 'CAN',
-#                                         p4_status = 'CAN', p5_status = 'CAN', p6_status = 'CAN'
-#                                         WHERE pnr = %s"""
-#                                     cursor.execute(update_status_query, (pnr_cancel,))
+                                    cursor.execute(cancel_tic, (pnr_cancel,)) 
                                     db_connection.commit()
                                     cursor.close()
                                     db_connection.close()    
