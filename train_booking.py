@@ -521,11 +521,9 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                     # Create a cursor to execute SQL queries
                     cursor = db_connection.cursor() 
                     passenger_info = [trial.passengers[i] if i < len(trial.passengers) else {} for i in range(6)]
-#                     print(passenger_info[0].get('seat', 'Null')) 
                     tob_gen=datetime.now()
                     tob_gen=str(tob_gen)
-                    tob=tob_gen.split('.')[0]
-                   
+                    tob=tob_gen.split('.')[0]                   
                     # Insert user data into the database
                     ticket_query = """
                         INSERT INTO tickets (   pnr, username, selected_quota, date_of_journey, 
@@ -546,8 +544,7 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                 %s, %s, %s, %s, %s, %s, %s )                 
 
-                        """
-                    
+                        """                   
 
                     user_data = (
                             trial.pnr, usern, trial.selected_quota, trial.date_str,
@@ -577,8 +574,7 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                     db_connection.commit()
                     cursor.close()
                 elif user_input == 2:
-                    print("Feature Not Available Right Now")
-                    #      cancellation
+                    print("...Cancellation...")                  
                     while True:
                         pnrc=input("Enter PNR No : ")
                         try:
@@ -596,25 +592,87 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                     print("PNR not found")
                                     continue
                                 else:
-                                    pass
-#                                 print(pnr_data,end='\n')
-#                                 print(pnr_obtain)
-#                                 break
-                                
-                                
+                                    cursor = db_connection.cursor()
+                                    pnr_cancel = str(pnrc)
+                                    
+                                    cancel_tic = """DELETE  FROM tickets WHERE pnr = %s """
+                                    cursor.execute(cancel_tic, (pnr_cancel,))
+                                    db_connection.commit()
+                                    cursor.close()
+                                    db_connection.close()                                    
+                                    print("Ticket Cancelled successfully")
+                                    smtp_server = 'smtp.gmail.com'
+                                    smtp_port = 587
+                                    sender_email = 'reservation.cystum@gmail.com'
+                                    sender_password = 'dijeocfyweumpgam'
+                                    message = MIMEMultipart('alternative')
+                                    message['Subject'] = 'Ticket Cancellation'
+                                    message['From'] = sender_email
+                                    message['To'] = email
+                                    
+                                    break                                                            
                                 
                             else :
                                 print("PNR must be 11 digit number")
                                 continue
 
-                        except Exception as e:
-                            print("Only numbers expected")
-                            print(e)
+                        except mysql.connector.Error as err:
+                            print("Error:", err)
+                    
 
                     pass
                 elif user_input == 3:
-                    print("Feature Not Available Right Now")
-                    #    Check PNR
+                    print("....Checking PNR....")
+                    pnr_f = input("Enter PNR: ")
+                    try:
+                        if pnr_f.isdigit() and len(pnr_f) ==11:                                        
+                                pnr_details='''SELECT date_of_journey, selected_quota, boarding, destination, 
+                                p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
+                                p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
+                                FROM tickets WHERE pnr=%s'''
+                                cursor = db_connection.cursor()
+                                cursor.execute(pnr_details,(pnr_f,))
+                                pnr_data=cursor.fetchall()
+                                cursor.close()
+                                if not pnr_data:
+                                    print("PNR not found")
+                                    continue
+                                else:
+                                    for row in pnr_data:
+                                        print("+-----------------------------+")
+                                        print("|Date of Journey:", row[0])
+                                        print("+-----------------------------|")
+                                        print("|Selected Quota:", row[1])
+                                        print("+-----------------------------|")
+                                        print("|Boarding Point:", row[2])
+                                        print("+-----------------------------|")
+                                        print("|Destination:", row[3])
+                                        print("+-----------------------------+")
+
+                                        passenger_count = 0
+
+                                        for i in range(4, len(row), 3):
+                                            passenger_name = row[i]
+                                            if passenger_name != "Null":
+                                                passenger_count += 1
+                                                
+                                                print(f"\nPassenger {passenger_count}:")
+                                                print("+-----------------------------+")
+                                                print("|  Name:", passenger_name)
+                                                print("+-----------------------------|")
+                                                print("|  Seat:", row[i + 1])
+                                                print("+-----------------------------|")
+                                                print("|  Status:", row[i + 2])
+                                                print("+-----------------------------+")
+
+                                    break
+                        else :
+                            print("PNR must be 11 digit number")
+                            
+                            continue
+                    except mysql.connector.Error as err:
+                        print("Error:", err)
+  
                     pass
                 elif user_input == 4:
                     print("Logout Successfully")
