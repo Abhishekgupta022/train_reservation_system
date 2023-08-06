@@ -53,8 +53,8 @@ class TicketBooking:
                 print("At least one of the stations is not available. Please try again.\n")
 
     def __init__(self):
-        self.boarding = self.passengers = self.destination  = None
-        self.passenger_count = 0 
+        self.boarding = self.passengers = self.destination = None
+        self.passenger_count = 0
         self.selected_quota = self.date_str = self.email_id = self.total_fare = None
 
         self.quota_options = ['General', 'Sleeper', '3AC', '2AC', '1AC']
@@ -169,7 +169,7 @@ class TicketBooking:
         for i in range(passenger_count):
             passenger = self.get_passenger_info(i + 1, selected_quota)
             self.passengers[i] = passenger
-#             self.passengers.append(passenger)
+        #             self.passengers.append(passenger)
 
         #         smtp_username = getpass.getpass("SMTP Username: ")
         smtp_username = 'reservation.cystum@gmail.com'
@@ -189,19 +189,19 @@ class TicketBooking:
 
     def get_passenger_info(self, i, selected_quota):
         global mob
-        
-        passenger_info = {
-                    'name': None,
-                    'gender': None,
-                    'age': None,
-                    'phone': None,
-                    'address': None,
-                    'seat': None,
-                    'pnr': None,
-                    'fare': 0.0,  # Set the initial fare to 0.0
-                    'status': None            
 
-                    }
+        passenger_info = {
+            'name': None,
+            'gender': None,
+            'age': None,
+            'phone': None,
+            'address': None,
+            'seat': None,
+            'pnr': None,
+            'fare': 0.0,  # Set the initial fare to 0.0
+            'status': None
+
+        }
         name = input("Enter the Name of Passenger {}: ".format(i))
         print("Select passenger {} Gender".format(i))
         gender_options = ['M', 'F', 'T']
@@ -255,25 +255,23 @@ class TicketBooking:
         coach_number = randint(1, seat_details['total_coaches'])
         seat_number = i
         seat = "{}{}:{}".format(seat_details['coach'], coach_number, seat_number)
-        status='CNF'
-        
+        status = 'CNF'
+
         if i == 1:
             fare = self.calculate_fare(selected_quota)
         else:
             fare = self.passengers[0]['fare']
-            
-
         passenger_info.update({
-                    'name': name,
-                    'gender': selected_gender,
-                    'age': age,
-                    'phone': mob,
-                    'address': address,
-                    'seat': seat,
-                    'pnr': self.pnr,
-                    'fare': fare,
-                    'status' : status
-                    })
+            'name': name,
+            'gender': selected_gender,
+            'age': age,
+            'phone': mob,
+            'address': address,
+            'seat': seat,
+            'pnr': self.pnr,
+            'fare': fare,
+            'status': status
+        })
         return passenger_info
 
     @staticmethod
@@ -313,11 +311,12 @@ class TicketBooking:
         message['Subject'] = 'Ticket Booking Confirmation'
         message['From'] = sender_email
         email_content = "<html><body>"
-        email_content += "<h2>Dear Passenger, your ticket details for the journey from <strong>{}</strong> to <strong>{}</strong> :</h2>".format(
+        email_content += "<h2>Dear Passenger, your ticket details for the journey from \
+         <strong>{}</strong> to <strong>{}</strong> :</h2>".format(
             boarding, destination)
         email_content += "<h3>Date Of Journey: <strong>{} ({})</strong></h3>".format(selected_date, day)
-        email_content +=  f"<table border='1' cellpadding='5'>"
-#         email_content += "<br>"
+        email_content += f"<table border='1' cellpadding='5'>"
+        #         email_content += "<br>"
 
         for passenger in passengers:
             if 'name' in passenger:
@@ -330,25 +329,27 @@ class TicketBooking:
                 email_content += "<td>Seat: <b>{}</b></td>".format(str(passenger['seat']))
                 email_content += "<td>PNR: <b>{}</b></td>".format(str(passenger['pnr']))
                 email_content += "<td>Fare: <b>{}</b></td>".format(str(passenger['fare']))
-                email_content += "<td>Status: <b><span style='color: green;'>{}</span></b></td>".format(str(passenger['status']))
+                email_content += "<td>Status: <b><span style='color: green;'>{}</span>\
+                </b></td>".format(str(passenger['status']))
                 email_content += "</tr>"
+        email_content += "</body></html>"
         total_fare = self.calculate_total_fare()
-        email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)
-        email_content += "</body></html>"           
-        email_content += "<p>Happy Journey: INDIAN RAILWAYS<br>Love From Cystum...</p>"
-
-                
+        email_content += "<p>Total Fare: Rs. <b>{}</b></p>".format(total_fare)        
+        email_content += "<h3><span style : 'color': 'blue;'>Happy Journey: INDIAN RAILWAYS</h3>"
         message.set_payload(email_content)
         message['To'] = email_id
-
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(smtp_username, smtp_password)
             server.send_message(message)
+            
+            
 def calculate_age(dob):
     today = datetime.now()
     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
     return age
+
+
 def signup():
     global gender, mobile
     print("Please fill out the following signup form:")
@@ -490,7 +491,7 @@ def login():
                 print("Invalid username or password. Please try again.")
 
 
-def main(seat=None, selected_gender=None, age=None, address=None, passenger=None):
+def main():
     print("Welcome to the Railway Ticket Booking System")
 
     while True:
@@ -516,11 +517,11 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                     if db_connection.is_connected():
                         print("Database connection successful!")
                     # Create a cursor to execute SQL queries
-                    cursor = db_connection.cursor() 
+                    cursor = db_connection.cursor()
                     passenger_info = [trial.passengers[i] if i < len(trial.passengers) else {} for i in range(6)]
-                    tob_gen=datetime.now()
-                    tob_gen=str(tob_gen)
-                    tob=tob_gen.split('.')[0]                   
+                    tob_gen = datetime.now()
+                    tob_gen = str(tob_gen)
+                    tob = tob_gen.split('.')[0]
                     # Insert user data into the database
                     ticket_query = """
                         INSERT INTO tickets (   pnr, username, selected_quota, date_of_journey, 
@@ -540,48 +541,48 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                                 %s, %s, %s, %s, %s, %s, %s )  
-                        """   
+                        """
                     user_data = (
-                            trial.pnr, usern, trial.selected_quota, trial.date_str,
-                            trial.boarding, trial.destination, trial.email_id, trial.total_fare,
-                            passenger_info[0].get('name', 'Null'), passenger_info[0].get('gender', 'Null'),
-                            passenger_info[0].get('age', 0), passenger_info[0].get('phone', 'Null'), passenger_info[0].get('address', 'Null'),
-                            passenger_info[1].get('name', 'Null'), passenger_info[1].get('gender', 'Null'),
-                            passenger_info[1].get('age', 0),
-                            passenger_info[2].get('name', 'Null'), passenger_info[2].get('gender', 'Null'),
-                            passenger_info[2].get('age', 0),
-                            passenger_info[3].get('name', 'Null'), passenger_info[3].get('gender', 'Null'),
-                            passenger_info[3].get('age', 0),
-                            passenger_info[4].get('name', 'Null'), passenger_info[4].get('gender', 'Null'),
-                            passenger_info[4].get('age', 0),
-                            passenger_info[5].get('name', 'Null'), passenger_info[5].get('gender', 'Null'),
-                            passenger_info[5].get('age', 0),
-                            passenger_info[0].get('seat', 'Null'), passenger_info[1].get('seat', 'Null'),
-                            passenger_info[2].get('seat', 'Null'), passenger_info[3].get('seat', 'Null'),
-                            passenger_info[4].get('seat', 'Null'), passenger_info[5].get('seat', 'Null'),
-                            passenger_info[0].get('status', 'Null'), passenger_info[1].get('status', 'Null'),
-                            passenger_info[2].get('status', 'Null'), passenger_info[3].get('status', 'Null'),
-                            passenger_info[4].get('status', 'Null'), passenger_info[5].get('status', 'Null'),
-                            tob
-                        )
+                        trial.pnr, usern, trial.selected_quota, trial.date_str,
+                        trial.boarding, trial.destination, trial.email_id, trial.total_fare,
+                        passenger_info[0].get('name', 'Null'), passenger_info[0].get('gender', 'Null'),
+                        passenger_info[0].get('age', 0), passenger_info[0].get('phone', 'Null'),
+                        passenger_info[0].get('address', 'Null'),
+                        passenger_info[1].get('name', 'Null'), passenger_info[1].get('gender', 'Null'),
+                        passenger_info[1].get('age', 0),
+                        passenger_info[2].get('name', 'Null'), passenger_info[2].get('gender', 'Null'),
+                        passenger_info[2].get('age', 0),
+                        passenger_info[3].get('name', 'Null'), passenger_info[3].get('gender', 'Null'),
+                        passenger_info[3].get('age', 0),
+                        passenger_info[4].get('name', 'Null'), passenger_info[4].get('gender', 'Null'),
+                        passenger_info[4].get('age', 0),
+                        passenger_info[5].get('name', 'Null'), passenger_info[5].get('gender', 'Null'),
+                        passenger_info[5].get('age', 0),
+                        passenger_info[0].get('seat', 'Null'), passenger_info[1].get('seat', 'Null'),
+                        passenger_info[2].get('seat', 'Null'), passenger_info[3].get('seat', 'Null'),
+                        passenger_info[4].get('seat', 'Null'), passenger_info[5].get('seat', 'Null'),
+                        passenger_info[0].get('status', 'Null'), passenger_info[1].get('status', 'Null'),
+                        passenger_info[2].get('status', 'Null'), passenger_info[3].get('status', 'Null'),
+                        passenger_info[4].get('status', 'Null'), passenger_info[5].get('status', 'Null'),
+                        tob
+                    )
 
                     cursor.execute(ticket_query, user_data)
                     db_connection.commit()
                     cursor.close()
                 elif user_input == 2:
-                    print("...Cancellation...")                  
+                    print("...Cancellation...")
                     while True:
-                        pnrc=input("Enter PNR No : ")
+                        pnrc = input("Enter PNR No : ")
                         try:
-#                             pnrc_check=int(pnrc)
-                            if pnrc.isdigit() and len(pnrc) ==11:
-                                pnr_obtain='''SELECT date_of_journey, selected_quota, boarding, destination, 
+                            if pnrc.isdigit() and len(pnrc) == 11:
+                                pnr_obtain = '''SELECT date_of_journey, selected_quota, boarding, destination, 
                                 p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
                                 p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
                                 FROM tickets WHERE pnr=%s'''
                                 cursor = db_connection.cursor()
-                                cursor.execute(pnr_obtain,(pnrc,))
-                                pnr_data=cursor.fetchall()
+                                cursor.execute(pnr_obtain, (pnrc,))
+                                pnr_data = cursor.fetchall()
                                 cursor.close()
                                 if not pnr_data:
                                     print("PNR not found")
@@ -593,23 +594,27 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                     cursor.execute(user_email, (pnr_cancel,))
                                     user_email = cursor.fetchone()[0]
                                     can_data = '''SELECT date_of_journey, selected_quota, boarding, destination, 
-                                    p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
-                                    p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
+                                     p1_name, p1_seat, p1_status,
+                                     p2_name, p2_seat, p2_status,
+                                     p3_name, p3_seat, p3_status,
+                                     p4_name, p4_seat, p4_status,
+                                     p5_name, p5_seat, p5_status, 
+                                     p6_name, p6_seat, p6_status
                                     FROM tickets WHERE pnr=%s'''
                                     cursor.execute(can_data, (pnr_cancel,))
                                     tic_data = cursor.fetchall()
                                     cancel_tic = """DELETE  FROM tickets WHERE pnr = %s """
-                                    cursor.execute(cancel_tic, (pnr_cancel,)) 
+                                    cursor.execute(cancel_tic, (pnr_cancel,))
                                     db_connection.commit()
                                     cursor.close()
-                                    db_connection.close()    
+                                    db_connection.close()
                                     smtp_server = 'smtp.gmail.com'
                                     smtp_port = 587
                                     sender_email = 'reservation.cystum@gmail.com'
                                     sender_password = 'dijeocfyweumpgam'
                                     message = MIMEMultipart('alternative')
                                     message['Subject'] = 'Ticket Cancellation'
-                                    message['From'] = sender_email                                    
+                                    message['From'] = sender_email
                                     message['To'] = user_email
                                     if not tic_data:
                                         print("Some Error Occured\nPNR not Found")
@@ -617,35 +622,32 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                     else:
                                         email_can_content = f"<html><body>"
                                         email_can_content += f"<p>Dear Passenger,</p>"
-                                        email_can_content += f"<p>Your Ticket From <strong>{tic_data[0][2]}</strong> to <strong>{tic_data[0][3]}</strong> is Cancelled.</p>"
+                                        email_can_content += (f"<p>Your Ticket From <strong>{tic_data[0][2]} "
+                                                              f"to <strong>{tic_data[0][3]}</strong> is Cancelled.</p>")
+
                                         email_can_content += f"<p>Date of Journey: {tic_data[0][0]}</p>"
                                         email_can_content += f"<p>Quota: {tic_data[0][1]}</p>"
-                                        email_can_content += f"<p><strong>Passenger Details:</strong></p>"                                        
+                                        email_can_content += f"<p><strong>Passenger Details:</strong></p>"
                                         email_can_content += f"<table border='1' cellpadding='5'>"
-                                        email_can_content += f"<tr><th>SL No.</th><th>Name</th><th>Seat</th><th>Status</th></tr>"
-                                        
-
+                                        email_can_content += f"<tr><th>SL No.</th><th>Name\
+                                        </th><th>Seat</th><th>Status</th></tr>"
                                         passenger_count = 0
                                         for i in range(4, len(tic_data[0]), 3):
                                             passenger_name = tic_data[0][i]
                                             if passenger_name != "Null":
                                                 passenger_count += 1
                                                 email_can_content += f"<tr>"
-                                                email_can_content += f"<td>{passenger_count}</td>"           
+                                                email_can_content += f"<td>{passenger_count}</td>"
                                                 email_can_content += f"<td>{passenger_name}</td>"
                                                 email_can_content += f"<td>{tic_data[0][i + 1]}</td>"
-                                                email_can_content += f"<td style='color: red;'>CAN</td>"  # Status set to "CAN" in red color
+                                                email_can_content += f"<td style='color: red;'>CAN</td>"
                                                 email_can_content += f"</tr>"
 
                                         email_can_content += f"</table>"
                                         email_can_content += f"<p><strong>Refund Information:</strong></p>"
-                                        email_can_content += f"<p>Your refund will be reverted to the same account in 4-5 working days.</p>"
-                                        email_can_content += f"</body></html>"                                      
-
-
-
-                                    # Attach the email content
-#                                     text_part = MIMEText(email_can_content, 'plain')
+                                        email_can_content += f"<p>Your refund will be reverted to the \
+                                        same account in 4-5 working days.</p>"
+                                        email_can_content += f"</body></html>"
                                     message.attach(MIMEText(email_can_content, 'html'))
 
                                     # Connect to SMTP server and send email
@@ -655,70 +657,68 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
                                         server.sendmail(sender_email, user_email, message.as_string())
 
                                     print("Ticket Cancelled successfully and email sent.")
-                                    
-                                    break                                                            
-                                
-                            else :
+
+                                    break
+
+                            else:
                                 print("PNR must be 11 digit number")
                                 continue
 
                         except mysql.connector.Error as err:
                             print("Error:", err)
-                    
-
                     pass
                 elif user_input == 3:
                     print("....Checking PNR....")
                     pnr_f = input("Enter PNR: ")
                     try:
-                        if pnr_f.isdigit() and len(pnr_f) ==11:                                        
-                                pnr_details='''SELECT date_of_journey, selected_quota, boarding, destination, 
+                        if pnr_f.isdigit() and len(pnr_f) == 11:
+                            pnr_details='''SELECT date_of_journey, selected_quota, boarding, destination, 
                                 p1_name, p1_seat, p1_status, p2_name, p2_seat, p2_status, p3_name, p3_seat, p3_status,
                                 p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
                                 FROM tickets WHERE pnr=%s'''
-                                cursor = db_connection.cursor()
-                                cursor.execute(pnr_details,(pnr_f,))
-                                pnr_data=cursor.fetchall()
-                                cursor.close()
-                                if not pnr_data:
-                                    print("PNR not found")
-                                    continue
-                                else:
-                                    for row in pnr_data:
-                                        print("+-----------------------------+")
-                                        print("|Date of Journey:", row[0])
-                                        print("+-----------------------------|")
-                                        print("|Selected Quota:", row[1])
-                                        print("+-----------------------------|")
-                                        print("|Boarding Point:", row[2])
-                                        print("+-----------------------------|")
-                                        print("|Destination:", row[3])
-                                        print("+-----------------------------+")
+                            cursor = db_connection.cursor()
+                            cursor.execute(pnr_details , (pnr_f,))
+                            pnr_data = cursor.fetchall()
+                            cursor.close()
+                            if not pnr_data:
+                                print("PNR not found")
+                                continue
+                            else:
+                                for row in pnr_data:
+                                    print("+-----------------------------+")
+                                    print("|Date of Journey:", row[0])
+                                    print("+-----------------------------|")
+                                    print("|Selected Quota:", row[1])
+                                    print("+-----------------------------|")
+                                    print("|Boarding Point:", row[2])
+                                    print("+-----------------------------|")
+                                    print("|Destination:", row[3])
+                                    print("+-----------------------------+")
 
-                                        passenger_count = 0
+                                    passenger_count = 0
 
-                                        for i in range(4, len(row), 3):
-                                            passenger_name = row[i]
-                                            if passenger_name != "Null":
-                                                passenger_count += 1
-                                                
-                                                print(f"\nPassenger {passenger_count}:")
-                                                print("+-----------------------------+")
-                                                print("|  Name:", passenger_name)
-                                                print("+-----------------------------|")
-                                                print("|  Seat:", row[i + 1])
-                                                print("+-----------------------------|")
-                                                print("|  Status:", row[i + 2])
-                                                print("+-----------------------------+")
+                                    for i in range(4, len(row), 3):
+                                        passenger_name = row[i]
+                                        if passenger_name != "Null":
+                                            passenger_count += 1
 
-                                    break
-                        else :
+                                            print(f"\nPassenger {passenger_count}:")
+                                            print("+-----------------------------+")
+                                            print("|  Name:", passenger_name)
+                                            print("+-----------------------------|")
+                                            print("|  Seat:", row[i + 1])
+                                            print("+-----------------------------|")
+                                            print("|  Status:", row[i + 2])
+                                            print("+-----------------------------+")
+
+                                break
+                        else:
                             print("PNR must be 11 digit number")
-                            
+
                             continue
                     except mysql.connector.Error as err:
                         print("Error:", err)
-  
+
                     pass
                 elif user_input == 4:
                     print("Logout Successfully")
@@ -734,7 +734,7 @@ def main(seat=None, selected_gender=None, age=None, address=None, passenger=None
 
 def ticket_booking_process():
     booking = TicketBooking()
-    
+
     booking.book_tickets()
     booking.print_tickets()
     return booking
