@@ -376,8 +376,10 @@ def signup():
         try:
             dob = datetime.strptime(dob_str, "%Y-%m-%d")
             age = calculate_age(dob)
-            if age < 18:
+            if age < 18 :
                 print("You must be at least 18 years old to create an account.")
+            elid age > 90:
+                print("Too OLD for creating UserID")
             else:
                 break
         except ValueError:
@@ -399,7 +401,21 @@ def signup():
         except EmailNotValidError:
             print("Invalid email address! Please enter a valid email.")
     address = input("User Permanent Address: ")
-    username = input("Create Username: ")
+    cursor = db_connection.cursor()
+    exist_user = """SELECT username from users """
+    cursor.execute(exist_user)
+    existing_usernames = [row[0] for row in cursor.fetchall()] 
+    while True:
+        username = input("Create Username: ")
+
+        if username in existing_usernames:
+            print("USER EXISTS!!")
+        else:
+            print(f"USERNAME {username} AVAILABLE")
+            break
+    cursor.close()
+    db_connection.close()   
+    
     password = getpass.getpass("Create Password: ")
     users[username] = {
         'name': name,
@@ -584,8 +600,6 @@ def main():
                                 cursor.execute(pnr_obtain, (pnrc,))
                                 pnr_data = cursor.fetchall()
                                 cursor.close()
-#                                 print(pnr_data)
-#                                 print(pnr_data[0][22])
                                 pnr_username=pnr_data[0][22]
                                 if not pnr_data:
                                     print("PNR not found")
@@ -603,17 +617,12 @@ def main():
                                                 passenger_count += 1
 
                                                 print(f"\n{passenger_count}", end=". ")
-#                                                 print("+-----------------------------+")
                                                 print(f"Name: {passenger_name}", end=" | ")
-#                                                 print("+-----------------------------|")
                                                 print(f"Seat: {pnr_data[0][i + 1]}", end=" | ")
-#                                                 print("+-----------------------------|")
                                                 print(f"Status: {pnr_data[0][i + 2]}")
-#                                                 print("+-----------------------------+")
                                                 
                                         r=input("Enter the passenger no. to cancel the reservation : ")
                                         can_num='p'+r+'_status'
-#                                         print(can_num)
                 
                                         cursor = db_connection.cursor()
                                         pnr_cancel = str(pnrc)
