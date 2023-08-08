@@ -378,7 +378,7 @@ def signup():
             age = calculate_age(dob)
             if age < 18 :
                 print("You must be at least 18 years old to create an account.")
-            elid age > 90:
+            elif age > 90:
                 print("Too OLD for creating UserID")
             else:
                 break
