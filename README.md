@@ -34,9 +34,3 @@ The development environment utilized for this project is Jupyter Notebook, which
 
 The Railway Reservation System developed using Python, MySQL, and various libraries demonstrates a successful integration of database management, user authentication, email communication, and fair allocation processes. It offers a complete solution for efficient and user-friendly railway seat reservation, catering to both passengers and administrative needs.
 
-Feel free to customize this description according to the specific details and functionalities of your project.
-
-
-
-
-
