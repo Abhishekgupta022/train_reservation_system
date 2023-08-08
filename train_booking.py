@@ -376,7 +376,7 @@ def signup():
         try:
             dob = datetime.strptime(dob_str, "%Y-%m-%d")
             age = calculate_age(dob)
-            if age < 18 :
+            if age < 18:
                 print("You must be at least 18 years old to create an account.")
             elif age > 90:
                 print("Too OLD for creating UserID")
@@ -600,59 +600,55 @@ def main():
                                 cursor = db_connection.cursor()
                                 cursor.execute(pnr_obtain, (pnrc,))
                                 pnr_data = cursor.fetchall()
+                                pnr_username = None
+                                if pnr_data:
+                                    pnr_username = pnr_data[0][22]
                                 cursor.close()
-                                
-                                pnr_username = pnr_data[0][22]
-                                y = pnr_data[0][23]
-#                                 print(f"fff: {y}")
-#                                 print(f"hhh: {pnr_username}")
-                                if not y:
+                                if pnr_username is None:
                                     print("PNR not found")
                                     continue
-                                else:
-                                    if usern == pnr_username:
-                                        print(f"Date of Journey : {pnr_data[0][0]}")
-                                        print(f"Quota : {pnr_data[0][1]}")
-                                        print(f"Boarding : {pnr_data[0][2]}    Destination : {pnr_data[0][3]}")
+                                elif usern == pnr_username:
+                                    print(f"Date of Journey : {pnr_data[0][0]}")
+                                    print(f"Quota : {pnr_data[0][1]}")
+                                    print(f"Boarding : {pnr_data[0][2]}    Destination : {pnr_data[0][3]}")
 
-                                        passenger_count = 0
-                                        for i in range(4, 22, 3):
-                                            passenger_name = pnr_data[0][i]
-                                            if passenger_name != "Null":
-                                                passenger_count += 1
+                                    passenger_count = 0
+                                    for i in range(4, 22, 3):
+                                        passenger_name = pnr_data[0][i]
+                                        if passenger_name != "Null":
+                                            passenger_count += 1
 
-                                                print(f"\n{passenger_count}", end=". ")
-                                                print(f"Name: {passenger_name}", end=" | ")
-                                                print(f"Seat: {pnr_data[0][i + 1]}", end=" | ")
-                                                print(f"Status: {pnr_data[0][i + 2]}")
-#                                        
+                                            print(f"\n{passenger_count}", end=". ")
+                                            print(f"Name: {passenger_name}", end=" | ")
+                                            print(f"Seat: {pnr_data[0][i + 1]}", end=" | ")
+                                            print(f"Status: {pnr_data[0][i + 2]}")
+                                        #
+
                                         r = input("Enter the passenger no. to cancel the reservation : ")
-                                        if r.isdigit():      
+                                        if r.isdigit():
                                             r = int(r)
                                             if 1 <= r <= passenger_count:
-                                                can_num = 'p'+r+'_status'
+                                                can_num = 'p' + str(r) + '_status'
                                                 cursor = db_connection.cursor()
                                                 pnr_cancel = str(pnrc)
                                                 user_email = """SELECT email_id from tickets where pnr = %s """
                                                 cursor.execute(user_email, (pnr_cancel,))
                                                 user_email = cursor.fetchone()[0]
-                                                can_data = '''SELECT date_of_journey, selected_quota, boarding, destination, 
-                                                 p1_name, p1_seat, p1_status,
-                                                 p2_name, p2_seat, p2_status,
-                                                 p3_name, p3_seat, p3_status,
-                                                 p4_name, p4_seat, p4_status,
-                                                 p5_name, p5_seat, p5_status, 
-                                                 p6_name, p6_seat, p6_status
-                                                FROM tickets WHERE pnr=%s'''
+                                                can_data = '''SELECT date_of_journey, selected_quota,
+                                                     boarding, destination, 
+                                                     p1_name, p1_seat, p1_status,
+                                                     p2_name, p2_seat, p2_status,
+                                                     p3_name, p3_seat, p3_status,
+                                                     p4_name, p4_seat, p4_status,
+                                                     p5_name, p5_seat, p5_status, 
+                                                     p6_name, p6_seat, p6_status
+                                                    FROM tickets WHERE pnr=%s'''
 
                                                 cancel_tic = f"""UPDATE tickets SET {can_num} ='CAN' WHERE pnr = %s"""
                                                 cursor.execute(cancel_tic, (pnr_cancel,))
                                                 db_connection.commit()
-                                                #                                         cursor.close()
-
                                                 cursor.execute(can_data, (pnr_cancel,))
                                                 tic_data = cursor.fetchall()
-                                                #                                         cursor = db_connection.cursor()
                                                 cursor.close()
                                                 db_connection.close()
                                                 smtp_server = 'smtp.gmail.com'
@@ -669,7 +665,8 @@ def main():
                                                 else:
                                                     email_can_content = f"<html><body>"
                                                     email_can_content += f"<p>Dear Passenger,</p>"
-                                                    email_can_content += (f"<p>Your Ticket From <strong>{tic_data[0][2]} "
+                                                    email_can_content += (f"<p>Your Ticket From <strong>"
+                                                                          f"{tic_data[0][2]} "
                                                                           f"to <strong>{tic_data[0][3]}"
                                                                           f"</strong> is Cancelled.</p>")
 
@@ -678,7 +675,7 @@ def main():
                                                     email_can_content += f"<p><strong>Passenger Details:</strong></p>"
                                                     email_can_content += f"<table border='1' cellpadding='5'>"
                                                     email_can_content += f"<tr><th>SL No.</th><th>Name\
-                                                    </th><th>Seat</th><th>Status</th></tr>"
+                                                            </th><th>Seat</th><th>Status</th></tr>"
                                                     passenger_count = 0
                                                     for i in range(4, len(tic_data[0]), 3):
                                                         passenger_name = tic_data[0][i]
@@ -702,31 +699,30 @@ def main():
                                                     email_can_content += f"</table>"
                                                     email_can_content += f"<p><strong>Refund Information:</strong></p>"
                                                     email_can_content += f"<p>Your refund will be reverted to the \
-                                                    same account in 4-5 working days.</p>"
+                                                            same account in 4-5 working days.</p>"
                                                     email_can_content += f"</body></html>"
                                                 message.attach(MIMEText(email_can_content, 'html'))
 
-                                                # Connect to SMTP server and send email
+                                                        # Connect to SMTP server and send email
                                                 with smtplib.SMTP(smtp_server, smtp_port) as server:
                                                     server.starttls()
                                                     server.login(sender_email, sender_password)
                                                     server.sendmail(sender_email, user_email, message.as_string())
-
                                                 print("Ticket Cancelled successfully and email sent.")
                                                 break
-                                            else:                                    
-                                                print(f"InValid Input {passenger_count} passenger/s for this PNR")                                               
+                                            else:
+                                                print(f"InValid Input {passenger_count} passenger/s for this PNR")
                                                 continue
-                                    else:
-                                        print("PNR does not belong to this user id.")
-                                        break
+                                else:
+                                    print("PNR does not belong to this user id.")
+                                    continue
                             else:
                                 print("PNR must be 11 digit number")
                                 continue
 
                         except mysql.connector.Error as err:
                             print("Error:", err)
-                    pass
+
                 elif user_input == 3:
                     print("....Checking PNR....")
                     pnr_f = input("Enter PNR: ")
@@ -737,7 +733,7 @@ def main():
                                 p4_name, p4_seat, p4_status, p5_name, p5_seat, p5_status, p6_name, p6_seat, p6_status
                                 FROM tickets WHERE pnr=%s'''
                             cursor = db_connection.cursor()
-                            cursor.execute(pnr_details , (pnr_f,))
+                            cursor.execute(pnr_details, (pnr_f,))
                             pnr_data = cursor.fetchall()
                             cursor.close()
                             if not pnr_data:
@@ -771,15 +767,13 @@ def main():
                                             print("|  Status:", row[i + 2])
                                             print("+-----------------------------+")
 
-                                break
+                                            break
                         else:
                             print("PNR must be 11 digit number")
-
                             continue
                     except mysql.connector.Error as err:
                         print("Error:", err)
 
-                    pass
                 elif user_input == 4:
                     print("Logout Successfully")
                     break
@@ -802,4 +796,3 @@ def ticket_booking_process():
 
 if __name__ == "__main__":
     main()
-    
