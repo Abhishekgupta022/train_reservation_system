@@ -624,8 +624,8 @@ def main():
                                             print(f"Status: {pnr_data[0][i + 2]}")
                                         #
 
-                                        r = input("Enter the passenger no. to cancel the reservation : ")
-                                        if r.isdigit():
+                                    r = input("Enter the passenger no. to cancel the reservation : ")
+                                    if r.isdigit():
                                             r = int(r)
                                             if 1 <= r <= passenger_count:
                                                 can_num = 'p' + str(r) + '_status'
@@ -709,6 +709,7 @@ def main():
                                                     server.login(sender_email, sender_password)
                                                     server.sendmail(sender_email, user_email, message.as_string())
                                                 print("Ticket Cancelled successfully and email sent.")
+                                       
                                                 break
                                             else:
                                                 print(f"InValid Input {passenger_count} passenger/s for this PNR")
@@ -722,7 +723,7 @@ def main():
 
                         except mysql.connector.Error as err:
                             print("Error:", err)
-
+                    
                 elif user_input == 3:
                     print("....Checking PNR....")
                     pnr_f = input("Enter PNR: ")
@@ -767,7 +768,7 @@ def main():
                                             print("|  Status:", row[i + 2])
                                             print("+-----------------------------+")
 
-                                            break
+#                                             break
                         else:
                             print("PNR must be 11 digit number")
                             continue
