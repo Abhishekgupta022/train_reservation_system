@@ -414,7 +414,7 @@ def signup():
             print(f"USERNAME {username} AVAILABLE")
             break
     cursor.close()
-    db_connection.close()
+#     db_connection.close()
 
     password = getpass.getpass("Create Password: ")
     users[username] = {
@@ -469,20 +469,28 @@ def signup():
     if db_connection.is_connected():
         print("Database connection successful!")
     # Create a cursor to execute SQL queries
-    cursor = db_connection.cursor()
+        cursor = db_connection.cursor()
     # Insert user data into the database
-    insert_query = """
-    INSERT INTO users (username, password, name, gender, age, mobile, email, address)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """
-    user_data = (username, password, name, gender, age, mobile, email, address)
-    cursor.execute(insert_query, user_data)
-    # Commit the changes and close the database connection
-    db_connection.commit()
-    cursor.close()
-    #     db_connection.close()
+        insert_query = """
+        INSERT INTO users (username, password, name, gender, age, mobile, email, address)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        user_data = (username, password, name, gender, age, mobile, email, address)
+        try:
+            cursor.execute(insert_query, user_data)
+            # Commit the changes and close the database connection
+            db_connection.commit()
+            cursor.close()
+            #     db_connection.close()
+            print("Signup successful!")
+        except mysql.connector.Error as err:
+            print("Error inserting data: {}".format(err))
+            db_connection.rollback()
 
-    print("Signup successful!")
+        # Close the database connection
+        db_connection.close()
+    else:
+        print("Database connection failed.")
 
 
 def login():
