@@ -239,15 +239,9 @@ class TicketBooking:
             except ValueError:
                 print("Invalid input! Enter a numeric age.\n")
 
-        valid_mob = False
-        while not valid_mob:
-            mob = input("Enter the Phone no. of passenger {}: ".format(i))
-            if len(mob) == 10 and mob.isdigit() and mob[0] != '0':
-                valid_mob = True
-            else:
-                print(
-                    "Invalid phone number!\nPhone number must be without the country code and does not start with 0.\n")
-
+        mobile = input("Enter User Mobile : ")
+        validated_mobile = check_mobile(mobile)
+        print(f"User Validated mobile: +91-{validated_mobile}" )
         address = input("Enter the passenger {} address: ".format(i))
 
         quota = self.quota_options.index(selected_quota)
@@ -342,7 +336,15 @@ class TicketBooking:
             server.starttls()
             server.login(smtp_username, smtp_password)
             server.send_message(message)
-
+def check_mobile(mobile):
+        valid_mob = False
+        while not valid_mob:        
+            if len(mobile) == 10 and mobile.isdigit() and mobile[0] != '0':
+                valid_mob = True
+                return mobile
+            else:
+                print("Invalid phone number!\nPhone number must be without the country code and does not start with 0.\n")
+                mobile = input("Enter User Mobile : ")
 
 def calculate_age(dob):
     today = datetime.now()
@@ -385,13 +387,9 @@ def signup():
         except ValueError:
             print("Invalid date format! Please enter the date in the format YYYY-MM-DD.")
 
-    valid_mob = False
-    while not valid_mob:
-        mobile = input("Enter User Mobile : ")
-        if len(mobile) == 10 and mobile.isdigit() and mobile[0] != '0':
-            valid_mob = True
-        else:
-            print("Invalid phone number!\nPhone number must be without the country code and does not start with 0.\n")
+    mobile = input("Enter User Mobile : ")
+    validated_mobile = check_mobile(mobile)
+    print(f"User Validated mobile: +91-{validated_mobile}" )
 
     while True:
         try:
