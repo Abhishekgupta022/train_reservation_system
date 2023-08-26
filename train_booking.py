@@ -259,7 +259,7 @@ class TicketBooking:
             'name': name,
             'gender': selected_gender,
             'age': age,
-            'phone': mob,
+            'phone': mobile,
             'address': address,
             'seat': seat,
             'pnr': self.pnr,
