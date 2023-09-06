@@ -53,17 +53,18 @@ class TicketBooking:
                 print("At least one of the stations is not available. Please try again.\n")
 
     def __init__(self):
+        self.quota_options = ['General', 'Sleeper', '3AC', '2AC', '1AC']
         self.boarding = self.passengers = self.destination = None
         self.passenger_count = 0
         self.selected_quota = self.date_str = self.email_id = self.total_fare = None
 
-        self.quota_options = ['General', 'Sleeper', '3AC', '2AC', '1AC']
+        
         self.seat_details = self.generate_seat_details()
         self.pnr = self.generate_pnr()
 
     def display_quota_options(self):
         for ind, quota in enumerate(self.quota_options):
-            print('{}: {}'.format(ind + 1, quota))
+            return ('{}: {}'.format(ind + 1, quota))
 
     def select_quota(self):
         choice = input("Enter the corresponding number for the quota: ")
@@ -191,15 +192,15 @@ class TicketBooking:
         global mob
 
         passenger_info = {
-            'name': None,
-            'gender': None,
-            'age': None,
-            'phone': None,
+            'name'   : None,
+            'gender' : None,
+            'age'    : None,
+            'phone'  : None,
             'address': None,
-            'seat': None,
-            'pnr': None,
-            'fare': 0.0,  # Set the initial fare to 0.0
-            'status': None
+            'seat'   : None,
+            'pnr'    : None,
+            'fare'   : 0.0,  # Set the initial fare to 0.0
+            'status' : None
 
         }
         name = input("Enter the Name of Passenger {}: ".format(i))
@@ -256,15 +257,15 @@ class TicketBooking:
         else:
             fare = self.passengers[0]['fare']
         passenger_info.update({
-            'name': name,
-            'gender': selected_gender,
-            'age': age,
-            'phone': mobile,
-            'address': address,
-            'seat': seat,
-            'pnr': self.pnr,
-            'fare': fare,
-            'status': status
+            'name'    : name,
+            'gender'  : selected_gender,
+            'age'     : age,
+            'phone'   : mobile,
+            'address' : address,
+            'seat'    : seat,
+            'pnr'     : self.pnr,
+            'fare'    : fare,
+            'status'  : status
         })
         return passenger_info
 
@@ -404,7 +405,20 @@ def signup():
     cursor.execute(exist_user)
     existing_usernames = [row[0] for row in cursor.fetchall()]
     while True:
-        username = input("Create Username: ")
+        try:
+            username = input("Create Username: ")
+            if len(username)>10:
+                print("Enter username less than 10 characters")
+                continue
+            else:
+                print("Yay Username Criteria Satisfied!!")
+                break
+        except ValueError:
+            print("Username less than 10 characters")
+            
+        
+        
+        
 
         if username in existing_usernames:
             print("USER EXISTS!!")
@@ -678,7 +692,7 @@ def main():
                                                         email_can_content += f"<p>Dear Passenger,</p>"
                                                         email_can_content += (f"<p>Your Ticket From <strong>"
                                                                               f"{tic_data[0][2]} "
-                                                                              f"to <strong>{tic_data[0][3]}"
+                                                                              f"-> <strong>{tic_data[0][3]}"
                                                                               f"</strong> is Cancelled.</p>")
 
                                                         email_can_content += f"<p>Date of Journey: {tic_data[0][0]}</p>"
@@ -727,7 +741,7 @@ def main():
                                                     break
                                                     
                                             else:
-                                                print(f"InValid Input {passenger_count} passenger/s for this PNR")
+                                                print(f"Invalid Input {passenger_count} passenger/s for this PNR")
                                                 continue
                                 else:
                                     print("PNR does not belong to this user id.")
@@ -802,7 +816,7 @@ def main():
 
 def ticket_booking_process():
     booking = TicketBooking()
-
+    booking.display_quota_options()
     booking.book_tickets()
     booking.print_tickets()
     return booking
